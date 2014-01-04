@@ -1,0 +1,60 @@
+doctype html
+html(lang="en")
+  head
+    title= pageTitle
+    link(rel="stylesheet", href="vendor.css")
+    link(rel="stylesheet", href="demo-style.css")
+  body
+    #preferences
+    #wrapper.startpage
+      form(method="get", action="/search", id="search")
+        h1.logo Game Resource
+        label: input(name="q", type="text", size="40",  autocomplete="off", placeholder="Search...")
+      menu#main-menu
+        li
+          a(href="#") Engines
+          menu
+            li
+              a.icon-panda(href="#") Engine #1
+            li
+              a(href="#") Engine #2
+        li
+          a(href="#") World
+          menu
+            li: a(href="#") Terrains
+            li: a(href="#") Static items
+        li
+          a(href="#") NPC
+          menu
+            li
+              a(href="#") biped
+
+        li
+          a(href="#") Characters
+          menu
+            li
+              a(href="#") Fantasy
+            li
+              a(href="#") Military
+            li
+              a(href="#") Monsters
+            li
+              a(href="#") Toon
+            li
+              a(href="#") Armor
+            li
+              a(href="#") Weapons
+        li
+          a(href="#") Community
+          menu
+            li
+              a(href="#") Chat
+            li
+              a.icon-forum(href="#") Forum
+        li
+          a(href="#") Wiki
+          menu
+            li
+              a(href="#") Tutorials
+            li
+              a(href="#") Tools

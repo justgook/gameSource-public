@@ -1,0 +1,42 @@
+{
+  "name": "inside-public",
+  "author": "Roman Potashow",
+  "version": "0.0.1-SNAPSHOT",
+  "homepage": "https://github.com/justgook/inside-public",
+  "description": "CMS system for remote editing and analysing",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "private": true,
+  "scripts": {
+    "start": "brunch watch --server",
+    "test": "cucumber.js integration/",
+    "postinstall": "bower install",
+    "update": "bower update"
+  },
+  "dependencies": {
+    "brunch": ">= 1.0 < 1.8",
+    "connect": "2.12.0",
+    "bower": "1.2.8",
+
+    "javascript-brunch": ">= 1.0 < 1.8",
+    "css-brunch": ">= 1.0 < 1.8",
+    "uglify-js-brunch": ">= 1.0 < 1.8",
+    "clean-css-brunch": ">= 1.0 < 1.8",
+    "coffee-script-brunch": ">= 1.0 < 1.8",
+    "stylus-brunch": ">= 1.0 < 1.8",
+    "jade-brunch": ">= 1.0 < 1.8",
+    "static-jade-brunch": ">= 1.0 < 1.8",
+    "auto-reload-brunch": ">= 1.0 < 1.8"
+  },
+  "devDependencies": {
+    "cucumber": "0.3.1",
+    "zombie": "~2.0",
+    "nedb": "~0.8.12",
+    "q": "~0.9.7",
+    "winston": "~0.7.2",
+    "engine.io": "~0.7.12"
+  }
+}
