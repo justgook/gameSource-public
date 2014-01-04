@@ -8,13 +8,13 @@ exports.config =
             joinTo:
               "app.js": /^app/
               "vendor.js": /^bower_components/
+            order:
+              after: ['app/initialize.coffee']
         stylesheets:
-            defaultExtension: 'styl'
             joinTo:
               "app.css": /^app/
               "vendor.css": /^bower_components/
         templates:
-            defaultExtension: 'jade'
             joinTo: 'templates.js'
     plugins:
         uglify:

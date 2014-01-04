@@ -20,7 +20,7 @@ html(lang="en")
   body
     #preferences
     #wrapper.startpage
-      form(method="get", action="/search", id="search")
+      form#search(method="get", action="/search")
         h1.logo Game Resource
         label: input(name="q", type="text", size="40",  autocomplete="off", placeholder="Search...")
       menu#main-menu

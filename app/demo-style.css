@@ -218,3 +218,26 @@ content:"\e610";
     -moz-osx-font-smoothing: grayscale;
 }
 
+ul.autocomplete {
+    display: none;
+    position: absolute;
+    background-color: #f8f8f8;
+    margin: 0;
+    padding: 3px 0;
+}
+
+    ul.autocomplete li {
+        list-style: none;
+        margin: 0;
+        padding: 5px 7px;
+    }
+
+        ul.autocomplete li.active, ul.autocomplete li:hover {
+            cursor: pointer;
+            background-color: #d3d3d3;
+        }
+
+        ul.autocomplete li a {
+            color: #3d3d3d;
+            text-decoration: none;
+        }
