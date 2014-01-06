@@ -5,7 +5,7 @@ html(lang="en")
     meta(http-equiv="X-UA-Compatible", content="IE=edge,chrome=1")
     meta( name="viewport", content="user-scalable=no, width=device-width")
     meta(name="apple-mobile-web-app-capable",content="yes")
-    title Clean Brunch Pancakes
+    title Game Resources
     link( rel="shortcut icon", href="favicon.ico")
     link(rel="stylesheet", href="/vendor.css")
     link(rel="stylesheet", href="/app.css")
@@ -20,54 +20,55 @@ html(lang="en")
   body
     #preferences
     #wrapper.startpage
-      form#search(method="get", action="/search")
-        h1.logo Game Resource
-        label: input(name="q", type="text", size="40",  autocomplete="off", placeholder="Search...")
-      menu#main-menu
-        li
-          a(href="#") Engines
-          menu
-            li
-              a.icon-panda(href="#") Engine #1
-            li
-              a(href="#") Engine #2
-        li
-          a(href="#") World
-          menu
-            li: a(href="#") Terrains
-            li: a(href="#") Static items
-        li
-          a(href="#") NPC
-          menu
-            li
-              a(href="#") biped
-
-        li
-          a(href="#") Characters
-          menu
-            li
-              a(href="#") Fantasy
-            li
-              a(href="#") Military
-            li
-              a(href="#") Monsters
-            li
-              a(href="#") Toon
-            li
-              a(href="#") Armor
-            li
-              a(href="#") Weapons
-        li
-          a(href="#") Community
-          menu
-            li
-              a(href="#") Chat
-            li
-              a.icon-forum(href="#") Forum
-        li
-          a(href="#") Wiki
-          menu
-            li
-              a(href="#") Tutorials
-            li
-              a(href="#") Tools
+      header
+        form#search(method="get", action="/search")
+          h1.logo Game Resource
+          label: input(name="q", type="text", size="40",  autocomplete="off", placeholder="Search...")
+        menu#main-menu
+          li
+            a(href="/page/Engines") Engines
+            menu
+              li
+                a.icon-panda(href="/page/Engines/1") Engine #1
+              li
+                a(href="/page/Engines/2") Engine #2
+          li
+            a(href="/page/World") World
+            menu
+              li: a(href="/page/World/Terrains") Terrains
+              li: a(href="/page/World/Static-items") Static items
+          li
+            a(href="/page/NPC") NPC
+            menu
+              li
+                a(href="/page/NPC/biped") biped
+          li
+            a(href="/page/Characters") Characters
+            menu
+              li
+                a(href="/page/Characters/Fantasy") Fantasy
+              li
+                a(href="/page/Characters/Military") Military
+              li
+                a(href="/page/Characters/Monsters") Monsters
+              li
+                a(href="/page/Characters/Toon") Toon
+              li
+                a(href="/page/Characters/Armor") Armor
+              li
+                a(href="/page/Characters/Weapons") Weapons
+          li
+            a(href="/page/Community") Community
+            menu
+              li
+                a(href="/chat") Chat
+              li
+                a.icon-forum(href="/forum") Forum
+          li
+            a(href="/page/wiki") Wiki
+            menu
+              li
+                a(href="/page/Tutorials") Tutorials
+              li
+                a(href="/page/Tools") Tools
+      section#content

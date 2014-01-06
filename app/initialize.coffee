@@ -1,54 +1,30 @@
-AutoCompleteView = require('lib/AutoComplete')
-class SearchView extends Backbone.View
-  el: "#search"
-  events:
-    "keyup input": "startTaping"
-    "submit": "submit"
-  initialize: ->
-    @listenTo @model, "change:query", @renderResults
-    # @listenTo @model, "change:query", @renderAutocomplete
-
-    Plugin = Backbone.Model.extend
-      label: -> @get "name"
-    PluginCollection = Backbone.Collection.extend
-      model: Plugin
-    plugins = new PluginCollection [
-      name:"aaa"
-    ,
-      name:"bbb"
-    ,
-      name:"bbb1"
-    ,
-      name:"bbb2"
-    ,
-      name:"bbb3"
-    ,
-      name:"bbb4"
-    ]
-    new AutoCompleteView({
-      input: @$el.find "input" # your input field
-      model: plugins # your collection
-      wait:0
-      minKeywordLength:1
-    }).render();
-    # @$el.find("input").val("dadas")
-  startTaping: (e)->
-    @model.set "query": e.target.value if e.target.value.length > 3
-    return
-  # renderAutocomplete:->
-
-  renderResults: (query)->
-     console.log "uraaa"
-  submit: (e)->
-    e.preventDefault()
-    e.stopPropagation()
-    return false
-class SearchModel extends Backbone.Model
-
 class Application extends Backbone.View
+  el: "body"
+  regions:{}
   initialize: ->
-    new SearchView model: new SearchModel
+    @initializeRegions()
+    require "modules/search/main"
+    require "modules/page/main"
+    @initializeRoute()
+  initializeRegions: ->
+    @regions =
+      header:
+        el: @el.querySelector "header"
+        # template: require "templates/menu"
+      content:
+        el: @el.querySelector "#content"
+        # template: "templates/page"
+  initializeRoute: ->
+    @el.addEventListener "click", (e) ->
+      node = e.target if e.target.tagName is "A"
+      node = e.target.parentNode if e.target.parentNode.tagName is "A"
+      if node
+        e.preventDefault()
+        fragment = node.getAttribute "href"
+        fragment = fragment.slice(1) if fragment?.charAt(0) == "/"
+        Backbone.history.navigate fragment, true
+    Backbone.history.start({pushState: true})
+ready = require "core/ready"
 
-ready = require "lib/ready"
 ready ->
- app = new Application
+  app = new Application
