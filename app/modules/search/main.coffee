@@ -35,10 +35,9 @@ class SearchView extends Backbone.View
     new AutoCompleteView({
       input: @$el.find "input" # your input field
       model: plugins # your collection
-      wait:0
-      minKeywordLength:1
+      wait: 0
+      minKeywordLength: 0
     }).render()
-
   renderResults: (query)->
      console.log "uraaa"
   submit: (e)->

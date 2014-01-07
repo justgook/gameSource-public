@@ -3,6 +3,7 @@ class Application extends Backbone.View
   regions:{}
   initialize: ->
     @initializeRegions()
+    @initializeCommunication()
     require "modules/search/main"
     require "modules/page/main"
     @initializeRoute()
@@ -24,6 +25,8 @@ class Application extends Backbone.View
         fragment = fragment.slice(1) if fragment?.charAt(0) == "/"
         Backbone.history.navigate fragment, true
     Backbone.history.start({pushState: true})
+  initializeCommunication:->
+    @socket = eio('ws://localhost');
 ready = require "core/ready"
 
 ready ->

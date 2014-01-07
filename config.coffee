@@ -36,3 +36,7 @@ exports.config =
             extension:  ".static.jade"              # static-compile each file with this extension in `assets`
             path:       [ /app/ ] # static-compile each file in this directories
             asset:      "public"
+    server:
+        path: 'server.coffee'
+        port: 3333
+        base: '/'

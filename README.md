@@ -6,3 +6,6 @@
 for ideas http://www.hongkiat.com/blog/flat-ui-design-showcase/
 
 http://foundation.zurb.com/
+
+####links for jquery deprication
+promises - http://www.html5rocks.com/en/tutorials/es6/promises/
