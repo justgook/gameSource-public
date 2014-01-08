@@ -3,7 +3,7 @@ class PageModel extends Backbone.Model
 
 class PageCollection extends Backbone.Collection
   model: PageModel
-  url: '/page'
+  url: 'page'
 
 class PageView extends Backbone.View
 class PageRoute extends Backbone.SubRoute
@@ -23,12 +23,13 @@ class PageRoute extends Backbone.SubRoute
         ,
         (xhr, errorType, errorObj)=> @renderError(errorType, errorObj, pageId)
     else
-      @renderPage page
+      @renderPage pageId
   requestPage: (page)->
-    @collection.fetch data:id:page
+    model = @collection.add id:page
+    model.fetch {url: @collection.url}
   renderPage: (page)->
-    console.trace arguments
+    console.log "PageRoute:renderPage"
     @view.render page
   renderError: (errorType, errorObj, pageId)->
-    console.log "fail"
+    console.log "PageRoute:renderError"
 exports = new PageRoute "page"

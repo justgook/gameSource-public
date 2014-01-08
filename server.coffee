@@ -40,15 +40,42 @@ exports.startServer = (port, path, callback) ->
 
   #socket (engine.io) connection handler
   server.on 'connection', (socket) ->
+
+
     #send message to just connected user
-    socket.send('hi')
+    # socket.send('hi')
+
     #send message to all users
-    server.clients[key].send "new user connected" for key, value of server.clients
+    # server.clients[key].send "new user connected" for key, value of server.clients
 
-
-
-    # socket.send "{\"message\":\"unauthorized\"}"
-    # socket.on 'message', (data) -> logger.debug(data)
+    #TODO make function static instead of anonymous
+    socket.on 'message', (message) ->
+      try
+        data = JSON.parse message
+      catch error
+        res =
+          message: "error"
+          data: "SyntaxError: can not parse JSON `#{message}`"
+        logger.error res.data
+      logger.debug(data)
+      switch data.message
+        when "create" then res =
+          message: "created"
+        when "update" then res =
+          message: "updated"
+        when "delete" then res =
+          message: "deleted"
+        when "fetch" then res =
+          message: "fetched"
+          label: data.label
+          id: data.id
+        when "subscribe" then res =
+          message: "subscribed"
+        when "unsubscribe" then res =
+          message: "unsubscribed"
+        else res =
+          message: "error"
+      socket.send JSON.stringify res
     # socket.on 'close', ->
 
   #call Callback to say brunch "server is started"
