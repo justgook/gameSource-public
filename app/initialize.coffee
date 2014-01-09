@@ -60,7 +60,10 @@ class Application extends Backbone.View
         "message": methodMap[method] #TODO create switch
         "label": _.result(model, "url") or throw new Error """A "url" property or function must be specified""" if !options.url #TODO remove starting slash if is so
         "id": _.uniqueId("fetch") #To be able to match server responses to requests, an additional `id` field can be included in the message.
+
+
       #Ensure that we have the appropriate request data.
+      #TODO need to check for all CRUD behaviors
       params.data = (options.attrs or model.toJSON(options)) #if not options.data? and model and (method is "create" or method is "update" or method is "patch")
       @socket.send JSON.stringify params
 
