@@ -1,4 +1,4 @@
-winston = require "winston"
+# winston = require "winston"
 engine = require "engine.io"
 Database = require "nedb"
 connect = require "connect"
@@ -6,16 +6,16 @@ send = require "send"
 {Promise} = require('es6-promise')
 util = require "util"
 
-logger = new winston.Logger
-    transports: [
-      new winston.transports.Console colorize:true, timestamp:true, level:"debug"
-    ]
+# logger = new winston.Logger
+#     transports: [
+#       new winston.transports.Console colorize:true, timestamp:true, level:"debug"
+#     ]
 
 
 exports.startServer = (port, path, callback) ->
   #   #http://www.senchalabs.org/connect/
   app = connect()
-    .use(connect.logger('dev'))
+    # .use(connect.logger('dev'))
     .use(connect.static(path))
     .use (req, res, next) ->
       # console.log req
@@ -59,8 +59,8 @@ exports.startServer = (port, path, callback) ->
         res =
           message: "error"
           data: "SyntaxError: can not parse JSON `#{message}`"
-        logger.error res.data
-      logger.debug(data)
+        # logger.error res.data
+      # logger.debug(data)
       promise = new Promise (resolve, reject)->
         if not data.label
           #TODO add id if is set
@@ -167,8 +167,23 @@ exports.startServer = (port, path, callback) ->
               # #TODO add permission filter
               if data.data?
                 if util.isArray data.data
-                  #TODO add implementation
-                  reject (message: "error", data: {code: "501", status: "Not Implemented", value: "delete of multi records by one request not implement yet"})
+                  promiseArray = []
+                  for item in data.data
+                    query = item
+                    query.label = data.label
+                    promiseArray.push new Promise (resolve, reject)->
+                      db.remove query, {multi: true}, (error, numRemoved) ->
+                        if error?
+                          reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot delete document by #{query}"})
+                        else
+                          res =
+                            message: "deleted"
+                            label: data.label
+                            count: numRemoved
+                          res.id = data.id if data.id?
+                          resolve(res)
+                  #TODO cancat all messeges in one!
+                  Promise.all(promiseArray).then resolve, reject
                 else
                   query = data.data
                   query.label = data.label

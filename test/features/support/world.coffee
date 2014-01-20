@@ -11,16 +11,16 @@
 # logger.log "info", "Dasdasd"
 # zombie = require "zombie"
 
-colors = require('colors')
-console = require('tracer').colorConsole
-  filters:
-    warn : colors.yellow
+# colors = require('colors')
+# console = require('tracer').colorConsole
+#   filters:
+#     warn : colors.yellow
 
 
 Promise = require('es6-promise').Promise
-arrayOfPromises = []
 
 World = (callback) ->
+  arrayOfPromises = []
   # zombie.debug = true
   # @browser = new zombie( # this.browser will be available in step definitions
   #   debug: true
@@ -28,15 +28,22 @@ World = (callback) ->
   # )
   # @visit = (url, callback) ->
   #   @browser.visit url, callback
+  # constructor: ->
+    # console.log "YKGH"
+
   @protocol =
     socket: require('engine.io-client')('ws://localhost:3333') #TODO add items from configuration file, to be able change host!
     socketMessages: []
     waitForResponse: Promise.resolve()
+    mockCreated: []
     waitForResponseResolve: ->
 
   @protocol.send = (message, callback)=>
     @protocol.waitForResponse = new Promise (resolve, reject)=>
       @protocol.waitForResponseResolve = resolve
+    #store created mocks to letter delete
+    parsed = JSON.parse message
+    @protocol.mockCreated.push parsed if parsed.message is "create"
     @protocol.socket.send message, callback
 
 

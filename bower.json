@@ -3,7 +3,6 @@
   "version": "SNAPSHOT",
   "main": "public/vendor.js",
   "dependencies": {
-    "console-polyfill": "~0.1.0",
     "lodash": "~2.1.0",
     "jquery": "~2.0.2",
     "normalize-css": "~2.1.2",
@@ -18,6 +17,13 @@
     "engine.io": {
       "ignore": "component.json",
       "dependencies": {}
+    },
+    "backgrid":{
+      "dependencies": {
+        "lodash": "*",
+        "backbone": "*",
+        "jquery": "*"
+      }
     },
     "backbone": {
       "dependencies": {
