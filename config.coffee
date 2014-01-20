@@ -1,6 +1,6 @@
-pjson = require('./package.json');
+pjson = require './package.json'
+process.env['DEBUG'] = "engine*" #delme in production! need to find better solution
 exports.config =
-    # See http://brunch.io/#documentation for docs.
     paths:
         public: 'public'
     files:

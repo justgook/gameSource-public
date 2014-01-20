@@ -11,13 +11,13 @@
     "backbone": "~1.1.0",
     "backbone.subroute": "~0.4.0",
     "backbone-forms": "~0.12.0",
-    "engine.io": "https://github.com/justgook/engine.io-client.git#master"
+    "engine.io": "https://github.com/justgook/engine.io-client.git#master",
+    "backgrid": "~0.3.2"
   },
   "overrides": {
     "engine.io": {
-      "ignore":"component.json",
-      "dependencies": {
-      }
+      "ignore": "component.json",
+      "dependencies": {}
     },
     "backbone": {
       "dependencies": {

@@ -30,7 +30,8 @@ class Application extends Backbone.View
     @socket = eio "ws://localhost"
     waitingForResponse = {}
     waitingForResponseTimeOut = 3000
-    @socket.on "message", (message)->
+    @socket.on "error"
+    @socket.onopen = -> @socket.on "message", (message)->
       response = JSON.parse message
       switch
         #Messages without request-id - just push data from server by subscribe, or some other server behavior
@@ -65,7 +66,7 @@ class Application extends Backbone.View
       #Ensure that we have the appropriate request data.
       #TODO need to check for all CRUD behaviors
       params.data = (options.attrs or model.toJSON(options)) #if not options.data? and model and (method is "create" or method is "update" or method is "patch")
-      @socket.send JSON.stringify params
+
 
       timerHolder = null
       #TODO add support for browsers that do not support Promise as native
@@ -77,6 +78,8 @@ class Application extends Backbone.View
             reject Error "Response Timeout: no answer after #{waitingForResponseTimeOut / 1000}s"
           waitingForResponseTimeOut
         )
+
+      @socket.send JSON.stringify params
 
       promise.then (-> clearTimeout timerHolder), (-> clearTimeout timerHolder)
       promise.then options.success, options.error

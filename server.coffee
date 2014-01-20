@@ -1,17 +1,16 @@
-require "q"
 winston = require "winston"
 engine = require "engine.io"
 Database = require "nedb"
 connect = require "connect"
 send = require "send"
-Promise = require('es6-promise').Promise
+{Promise} = require('es6-promise')
 util = require "util"
 
-logger = new winston.Logger({
+logger = new winston.Logger
     transports: [
-      new winston.transports.Console(colorize:true, timestamp:true, level:"debug")
+      new winston.transports.Console colorize:true, timestamp:true, level:"debug"
     ]
-})
+
 
 exports.startServer = (port, path, callback) ->
   #   #http://www.senchalabs.org/connect/
@@ -38,10 +37,11 @@ exports.startServer = (port, path, callback) ->
   #create HTTP server based and attach connect instance to it
   http = require('http').createServer(app).listen(port)
 
-  #attach created server to engine.io to provide correct behavior of it
-  server = engine.attach(http)
   #TODO add indexes label, timespan (maybe id)
   db = new Database
+
+  #attach created server to engine.io to provide correct behavior of it
+  server = engine.attach(http)
 
   #socket (engine.io) connection handler
   server.on 'connection', (socket) ->
@@ -50,7 +50,7 @@ exports.startServer = (port, path, callback) ->
     # socket.send('hi')
 
     #send message to all users
-    server.clients[key].send JSON.stringify({"message":"new user connected"}) for key, value of server.clients
+    # server.clients[key].send JSON.stringify({"message":"new user connected"}) for key, value of server.clients
 
     socket.on 'message', (message) ->
       try
@@ -63,6 +63,7 @@ exports.startServer = (port, path, callback) ->
       logger.debug(data)
       promise = new Promise (resolve, reject)->
         if not data.label
+          #TODO add id if is set
           reject (message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, label must be set"})
         else
           switch data.message
@@ -79,7 +80,8 @@ exports.startServer = (port, path, callback) ->
                 documents.label = data.label
               db.insert documents, (error, docs)->
                 if error?
-                  reject (message: "error", data: {code: "500",status: "Database error #{error}", value: "Error on inserting data - #{document}"})
+                  #TODO add id if is set
+                  reject message: "error", data: code: "500", status: "Database error #{error}", value: "Error on inserting data - #{document}"
                 else
                   res =
                     message: "created"
@@ -89,30 +91,10 @@ exports.startServer = (port, path, callback) ->
                   resolve(res)
 
             when "fetch"
-              #TODO add total count property
-              #TODO add permission filter
-              if data.data?
-                if util.isArray data.data
-                  #TODO add implementation of search of array
-                  reject (message: "error", data: {code: "501",status: "Not Implemented", value: "fetch of multi records by one request not implement yet"})
-                else
-                  data.data.label = data.label
-                  db.findOne data.data, (error, docs)->
-                    if error?
-                      reject (message: "error", data: {code: "500",status: "Database error #{error}", value: "Cannot get document for #{data.data}"})
-                    else
-                      res =
-                        message: "fetched"
-                        label: data.label
-                        #TODO add total count property
-                        # count: 0
-                        data: docs
-                      res.id = data.id if data.id
-                      resolve(res)
-              else if data.kind? # in ["last", "since", "timespan", "all"]
+              if data.kind? # in ["last", "since", "timespan", "all"]
                 switch data.kind
                   #waiting for https://github.com/louischatriot/nedb/pull/109
-                  when "last" then reject (message: "error", data: {code: "501",status: "Not Implemented", value: "Kind #{data.kind} is under construction"})
+                  when "last" then reject (message: "error", data: {code: "501", status: "Not Implemented", value: "Kind #{data.kind} is under construction"})
                   when "since"
                     query =
                       label: data.label
@@ -120,6 +102,7 @@ exports.startServer = (port, path, callback) ->
                       timespan: $gte: Date.now() / 1000 - data.since
                     db.find query, (error, docs)->
                       if error?
+                        #TODO add id if is set
                         reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot get document by #{query}"})
                       else
                         res =
@@ -130,17 +113,79 @@ exports.startServer = (port, path, callback) ->
                           data: docs
                         res.id = data.id if data.id
                         resolve(res)
-                  when "timespan" then reject (message: "error", data: {code: "501",status: "Not Implemented", value: "Kind #{data.kind} is under construction"})
+                  when "timespan" then reject (message: "error", data: {code: "501", status: "Not Implemented", value: "Kind '#{data.kind}' is under construction"})
                     #TODO add documentation and implementation
-                  when "all" then reject (message: "error", data: {code: "501",status: "Not Implemented", value: "Kind #{data.kind} is under construction"})
-                  else reject (message: "error", data: {code: "405",status: "Method Not Allowed", value: "Unknown kind - '#{data.kind}'"})
+                  when "all"
+                    query = data.data
+                    query.label = data.label
+                    db.find query, (error, docs)->
+                      if error?
+                        #TODO add id if is set
+                        reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot get document by #{query}"})
+                      else
+                        res =
+                          message: "fetched"
+                          label: data.label
+                          #TODO add total count property
+                          # count: 0
+                          data: docs
+                        res.id = data.id if data.id
+                        resolve(res)
+                  # then reject (message: "error", data: {code: "501", status: "Not Implemented", value: "Kind '#{data.kind}' is under construction"})
+                  #TODO add id if is set
+                  else reject (message: "error", data: {code: "405", status: "Method Not Allowed", value: "Unknown kind - '#{data.kind}'"})
+
+              #TODO add total count property
+              #TODO add permission filter
+              else if data.data? #data.kind is not set
+                if util.isArray data.data
+                  #TODO add implementation of search of array
+                  reject message: "error", data: code: "501", status: "Not Implemented", value: "fetch of multi records by one request not implement yet"
+                else
+                  data.data.label = data.label
+                  db.findOne data.data, (error, docs)->
+                    if error?
+                      #TODO add id if is set
+                      reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot get document for #{data.data}"})
+                    else
+                      res =
+                        message: "fetched"
+                        label: data.label
+                        #TODO add total count property
+                        # count: 0
+                        data: docs
+                      res.id = data.id if data.id
+                      resolve(res)
+              else
+                #TODO add id if is set
+                reject (message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, kind must be set"})
 
             when "update" then resolve
               #TODO add permission filter
                 message: "updated"
-            when "delete" then resolve
-              #TODO add permission filter
-                message: "deleted"
+            when "delete"
+              # #TODO add permission filter
+              if data.data?
+                if util.isArray data.data
+                  #TODO add implementation
+                  reject (message: "error", data: {code: "501", status: "Not Implemented", value: "delete of multi records by one request not implement yet"})
+                else
+                  query = data.data
+                  query.label = data.label
+                  db.remove query, {multi: true}, (error, numRemoved) ->
+                    if error?
+                      reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot delete document by #{query}"})
+                    else
+                      res =
+                        message: "deleted"
+                        label: data.label
+                        count: numRemoved
+                      res.id = data.id if data.id?
+                      resolve(res)
+              else
+                #TODO add id if is set
+                reject (message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, data attribute must be set"})
+
             when "subscribe" then resolve
               message: "subscribed"
             when "unsubscribe" then resolve

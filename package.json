@@ -12,13 +12,15 @@
   "private": true,
   "scripts": {
     "start": "brunch watch --server",
-    "test": "cucumber.js integration/",
+    "test": "cucumber.js test/",
     "postinstall": "bower install",
     "update": "bower update"
   },
   "dependencies": {
     "cucumber": "0.3.1",
-    "zombie": "~2.0"
+    "es6-promise": "~0.1.1",
+    "engine.io-client": "~0.8.0",
+    "chai": "~1.8.1"
   },
   "devDependencies": {
     "brunch": ">= 1.0 < 1.8",
@@ -35,7 +37,6 @@
     "connect": "~2.12.0",
     "send": "~0.1.4",
     "engine.io": "~0.7.12",
-    "es6-promise": "~0.1.1",
     "i18n-2": "~0.4.5",
     "nedb": "~0.8.12",
     "winston": "~0.7.2"
