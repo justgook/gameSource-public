@@ -18,7 +18,6 @@ html(lang="en")
     script(src="/templates.js", defer)
     script(src="/app.js", defer, onload="require('initialize');")
   body
-    #preferences
     #wrapper.startpage
       header
         form#search(method="get", action="/search")
@@ -71,4 +70,7 @@ html(lang="en")
                 a(href="/page/Tutorials") Tutorials
               li
                 a(href="/page/Tools") Tools
-      section#content
+      main#content(role="main")
+    footer(role="contentinfo")
+    #preferences
+    ul#notification

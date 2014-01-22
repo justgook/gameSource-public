@@ -10,15 +10,19 @@
     "url": ""
   },
   "private": true,
+  "config": {
+    "process": "coffee -e \"require('./server').startServer(3333, 'public', -> console.log('done'))\"",
+    "host": "localhost",
+    "port": "3333"
+  },
   "scripts": {
     "start": "brunch watch --server",
     "test": "cucumber.js test/",
     "postinstall": "bower install",
-    "update": "bower update"
+    "postupdate": "bower update"
   },
   "dependencies": {
-        "cucumber": "0.3.3",
-
+    "cucumber": "0.3.3",
     "es6-promise": "~0.1.1",
     "engine.io-client": "~0.8.0",
     "chai": "~1.8.1"

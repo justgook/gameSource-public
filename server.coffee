@@ -39,7 +39,16 @@ exports.startServer = (port, path, callback) ->
 
   #TODO add indexes label, timespan (maybe id)
   db = new Database
-
+  #mock data delme letter
+  item =
+    label: "page"
+    timespan: Date.now() / 1000
+    id: "Engines"
+    title: "wiki page about engines"
+    author: "me me me"
+    content: "content content content content content content"
+  db.insert item, (error, docs)->
+    console.log arguments
   #attach created server to engine.io to provide correct behavior of it
   server = engine.attach(http)
 
@@ -143,17 +152,25 @@ exports.startServer = (port, path, callback) ->
                   reject message: "error", data: code: "501", status: "Not Implemented", value: "fetch of multi records by one request not implement yet"
                 else
                   data.data.label = data.label
-                  db.findOne data.data, (error, docs)->
+                  db.findOne data.data, (error, doc)->
                     if error?
                       #TODO add id if is set
                       reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot get document for #{data.data}"})
+                    else if not doc
+                      res =
+                        message: "error"
+                        data:
+                          code: "404"
+                          status: "Not Found"
+                          value: "The server has not found anything matching the Request"
+                      res.id = data.id if data.id
+                      reject res
                     else
+                      delete doc._id
                       res =
                         message: "fetched"
                         label: data.label
-                        #TODO add total count property
-                        # count: 0
-                        data: docs
+                        data: doc
                       res.id = data.id if data.id
                       resolve(res)
               else

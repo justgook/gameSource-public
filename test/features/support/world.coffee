@@ -17,8 +17,31 @@
 #     warn : colors.yellow
 
 
-Promise = require('es6-promise').Promise
 
+configs =
+  port: process.env.npm_package_config_port or "8080"
+  host: process.env.npm_package_config_host or "localhost"
+  process: process.env.npm_package_config_process
+
+
+# childProcess = require("child_process")
+# ls = childProcess.exec(configs.process, (error, stdout, stderr) ->
+#   if error
+#     console.log error.stack
+#     console.log "Error code: " + error.code
+#     console.log "Signal received: " + error.signal
+#   console.log "Child Process STDOUT: " + stdout
+#   console.log "Child Process STDERR: " + stderr
+# )
+# ls.on "exit", (code) ->
+#   console.log "Child process exited with exit code " + code
+# setTimeout ->
+#   ls.kill('SIGHUP')
+# ,1000
+
+
+# .kill('SIGHUP')
+{Promise} = require('es6-promise')
 World = (callback) ->
   arrayOfPromises = []
   # zombie.debug = true
