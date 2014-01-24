@@ -43,3 +43,16 @@
       content: '×' //TODO add from font
     &:hover:after
       display:block
+      // enter animation
+    right:-100%;
+    webkit-animation:flyOut ease-in 1;  /* call our keyframe named flyOut, use animattion ease-in and repeat it only 1 time */
+    moz-animation:flyOut ease-in 1;
+    animation:flyOut ease-in 1;
+
+    webkit-animation-fill-mode:forwards;  /* this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)*/
+    moz-animation-fill-mode:forwards;
+    animation-fill-mode:forwards;
+
+    webkit-animation-duration:0.4s;
+    moz-animation-duration:0.4s;
+    animation-duration:0.4s;
