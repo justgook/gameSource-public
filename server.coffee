@@ -37,11 +37,46 @@ exports.startServer = (port, path, callback) ->
   #create HTTP server based and attach connect instance to it
   http = require('http').createServer(app).listen(port)
 
-  #TODO add indexes label, timespan (maybe id)
+  #TODO add indexes label, timespan, !!id!!
   db = new Database
+  #=====================================================================================
+  #=====================================================================================
+  #=====================================================================================
+  #=====================================================================================
+  #=====================================================================================
+  #TODO mock data delme letter
+  #=====================================================================================
+  #=====================================================================================
+  #=====================================================================================
+  #=====================================================================================
+  Chance = require 'chance'
+  chance = new Chance()
+  items = []
+  for id in ["Engines", "Engines/1", "Engines/2", "World", "World/Terrains", "World/Static-items", "NPC", "NPC/biped", "Characters", "Characters/Fantasy", "Characters/Military", "Characters/Monsters", "Characters/Toon", "Characters/Armor", "Characters/Weapons", "Community", "wiki", "Tutorials", "Tools"]
+    item =
+      label: "page"
+      timespan: chance.hammertime() / 1000
+      id: id
+      title: chance.sentence(words: 5)
+      author: chance.name()
+      content: chance.paragraph()
+    items.push item
+
+  db.insert items, (error, docs)->
+    if error
+      console.log "Error on creating data"
+    else
+      console.log "data generated"
+  #=====================================================================================
+  #=====================================================================================
+  #=====================================================================================
+  #=====================================================================================
+  #=====================================================================================
+  #=====================================================================================
+  #=====================================================================================
 
   #attach created server to engine.io to provide correct behavior of it
-  server = engine.attach(http)
+  server = engine.attach http
 
   #socket (engine.io) connection handler
   server.on 'connection', (socket) ->
@@ -54,30 +89,28 @@ exports.startServer = (port, path, callback) ->
 
     socket.on 'message', (message) ->
       try
-        data = JSON.parse message
+        request = JSON.parse message
       catch error
         res =
           message: "error"
           data: "SyntaxError: can not parse JSON `#{message}`"
-        # logger.error res.data
-      # logger.debug(data)
+
       promise = new Promise (resolve, reject)->
-        if not data.label
+        if not request.label
           #TODO add id if is set
           reject (message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, label must be set"})
         else
-          switch data.message
-
+          switch request.message
             when "create"
               #TODO add permission filter
               #TODO add "_" before indexes (label, timespan)
-              documents = data.data
+              documents = request.data
               if util.isArray documents
                 for item in documents
-                  item.label = data.label
+                  item.label = request.label
                   item.timespan = Date.now() / 1000
               else
-                documents.label = data.label
+                documents.label = request.label
               db.insert documents, (error, docs)->
                 if error?
                   #TODO add id if is set
@@ -85,21 +118,21 @@ exports.startServer = (port, path, callback) ->
                 else
                   res =
                     message: "created"
-                    label: data.label
+                    label: request.label
                     data: docs
-                  res.id = data.id if data.id
+                  res.id = request.id if request.id
                   resolve(res)
 
             when "fetch"
-              if data.kind? # in ["last", "since", "timespan", "all"]
-                switch data.kind
+              if request.kind? # in ["last", "since", "timespan", "all"]
+                switch request.kind
                   #waiting for https://github.com/louischatriot/nedb/pull/109
-                  when "last" then reject (message: "error", data: {code: "501", status: "Not Implemented", value: "Kind #{data.kind} is under construction"})
+                  when "last" then reject (message: "error", data: {code: "501", status: "Not Implemented", value: "Kind #{request.kind} is under construction"})
                   when "since"
                     query =
-                      label: data.label
-                      #TODO Add error if data.since is not set
-                      timespan: $gte: Date.now() / 1000 - data.since
+                      label: request.label
+                      #TODO Add error if request.since is not set
+                      timespan: $gte: Date.now() / 1000 - request.since
                     db.find query, (error, docs)->
                       if error?
                         #TODO add id if is set
@@ -107,17 +140,17 @@ exports.startServer = (port, path, callback) ->
                       else
                         res =
                           message: "fetched"
-                          label: data.label
+                          label: request.label
                           #TODO add total count property
                           # count: 0
                           data: docs
-                        res.id = data.id if data.id
+                        res.id = request.id if request.id
                         resolve(res)
-                  when "timespan" then reject (message: "error", data: {code: "501", status: "Not Implemented", value: "Kind '#{data.kind}' is under construction"})
+                  when "timespan" then reject (message: "error", data: {code: "501", status: "Not Implemented", value: "Kind '#{request.kind}' is under construction"})
                     #TODO add documentation and implementation
                   when "all"
-                    query = data.data
-                    query.label = data.label
+                    query = request.data
+                    query.label = request.label
                     db.find query, (error, docs)->
                       if error?
                         #TODO add id if is set
@@ -125,36 +158,44 @@ exports.startServer = (port, path, callback) ->
                       else
                         res =
                           message: "fetched"
-                          label: data.label
+                          label: request.label
                           #TODO add total count property
                           # count: 0
                           data: docs
-                        res.id = data.id if data.id
+                        res.id = request.id if request.id
                         resolve(res)
-                  # then reject (message: "error", data: {code: "501", status: "Not Implemented", value: "Kind '#{data.kind}' is under construction"})
+                  # then reject (message: "error", data: {code: "501", status: "Not Implemented", value: "Kind '#{request.kind}' is under construction"})
                   #TODO add id if is set
-                  else reject (message: "error", data: {code: "405", status: "Method Not Allowed", value: "Unknown kind - '#{data.kind}'"})
+                  else reject (message: "error", data: {code: "405", status: "Method Not Allowed", value: "Unknown kind - '#{request.kind}'"})
 
               #TODO add total count property
               #TODO add permission filter
-              else if data.data? #data.kind is not set
-                if util.isArray data.data
+              else if request.data? #request.kind is not set
+                if util.isArray request.data
                   #TODO add implementation of search of array
                   reject message: "error", data: code: "501", status: "Not Implemented", value: "fetch of multi records by one request not implement yet"
                 else
-                  data.data.label = data.label
-                  db.findOne data.data, (error, docs)->
+                  request.data.label = request.label
+                  db.findOne request.data, (error, doc)->
                     if error?
                       #TODO add id if is set
-                      reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot get document for #{data.data}"})
+                      reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot get document for #{request.data}"})
+                    else if not doc
+                      res =
+                        message: "error"
+                        data:
+                          code: "404"
+                          status: "Not Found"
+                          value: "The server has not found anything matching the Request"
+                      res.id = request.id if request.id
+                      reject res
                     else
+                      delete doc._id
                       res =
                         message: "fetched"
-                        label: data.label
-                        #TODO add total count property
-                        # count: 0
-                        data: docs
-                      res.id = data.id if data.id
+                        label: request.label
+                        data: doc
+                      res.id = request.id if request.id
                       resolve(res)
               else
                 #TODO add id if is set
@@ -165,12 +206,12 @@ exports.startServer = (port, path, callback) ->
                 message: "updated"
             when "delete"
               # #TODO add permission filter
-              if data.data?
-                if util.isArray data.data
+              if request.data?
+                if util.isArray request.data
                   promiseArray = []
-                  for item in data.data
+                  for item in request.data
                     query = item
-                    query.label = data.label
+                    query.label = request.label
                     promiseArray.push new Promise (resolve, reject)->
                       db.remove query, {multi: true}, (error, numRemoved) ->
                         if error?
@@ -178,24 +219,24 @@ exports.startServer = (port, path, callback) ->
                         else
                           res =
                             message: "deleted"
-                            label: data.label
+                            label: request.label
                             count: numRemoved
-                          res.id = data.id if data.id?
+                          res.id = request.id if request.id?
                           resolve(res)
                   #TODO cancat all messeges in one!
                   Promise.all(promiseArray).then resolve, reject
                 else
-                  query = data.data
-                  query.label = data.label
+                  query = request.data
+                  query.label = request.label
                   db.remove query, {multi: true}, (error, numRemoved) ->
                     if error?
                       reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot delete document by #{query}"})
                     else
                       res =
                         message: "deleted"
-                        label: data.label
+                        label: request.label
                         count: numRemoved
-                      res.id = data.id if data.id?
+                      res.id = request.id if request.id?
                       resolve(res)
               else
                 #TODO add id if is set
@@ -210,7 +251,7 @@ exports.startServer = (port, path, callback) ->
               data:
                 code: "405"
                 status: "Method Not Allowed"
-                value: """Method "#{data.message}" Not Allowed, use one of create, update, delete, fetch, subscribe or unsubscribe"""
+                value: """Method "#{request.message}" Not Allowed, use one of create, update, delete, fetch, subscribe or unsubscribe"""
 
       promise.then \
         (res)-> #resolve

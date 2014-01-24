@@ -1,7 +1,6 @@
 AutoCompleteView = require('core/AutoComplete')
 class SearchView extends Backbone.View
   el: "#search"
-  regions:{}
   events:
     "keyup input": "startTaping"
     "submit": "submit"
@@ -10,7 +9,7 @@ class SearchView extends Backbone.View
     @regions = options.regions
     @listenTo @model, "change:query", @renderResults
     @initializeAutocomplete()
-    # @listenTo @model, "change:query", @renderAutocomplete
+
   startTaping: (e)->
     @model.set "query": e.target.value if e.target.value.length > 3
     return
@@ -38,11 +37,15 @@ class SearchView extends Backbone.View
       wait: 0
       minKeywordLength: 0
     }).render()
+
   renderResults: (query)->
-     console.log "uraaa"
+     console.log "requestin new data for AutoCompletion"
+
   submit: (e)->
-    e.preventDefault()
+    # e.preventDefault()
     e.stopPropagation()
     return false
 class SearchModel extends Backbone.Model
-exports = new SearchView model: new SearchModel
+
+module.exports = (configs)->
+  new SearchView model: new SearchModel, regions:configs.regions

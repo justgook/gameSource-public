@@ -1,5 +1,5 @@
 pjson = require './package.json'
-process.env['DEBUG'] = "engine*" #delme in production! need to find better solution
+# process.env['DEBUG'] = "engine*" #delme in production! need to find better solution
 exports.config =
     paths:
         public: 'public'
