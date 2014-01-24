@@ -41,6 +41,10 @@ class Application extends Backbone.View
 
         #Messages with request-id - answer to some application request
         when waitingForResponse[response.id]?
+          ##############################################################
+          #debug information
+          # Backbone.trigger("message:#{response.message}", response.data)
+          ##############################################################
           if response.message is "error"
             waitingForResponse[response.id][1] response.data #trigger reject/fail on request
           else
