@@ -29,9 +29,9 @@ exports.startServer = (port, path, callback) ->
       # res.end 'hello world\n'
     .use (req, res, next)->
       err = new Error('Not Found')
-      err.number = 7;
-      err.status = 404;
-      throw err;
+      err.number = 7
+      err.status = 404
+      throw err
     .use do connect.errorHandler
 
   #create HTTP server based and attach connect instance to it
@@ -78,24 +78,78 @@ exports.startServer = (port, path, callback) ->
   #attach created server to engine.io to provide correct behavior of it
   server = engine.attach http
 
+
+
+  #=====================================================================================
+  #module test
+  #move me outside
+  class Module
+    filters:[]
+    prefix: ""
+    constructor: (config = {})->
+      console.info "registering module \"#{@constructor.name}\""
+      @prefix = config.prefix if config.prefix? and typeof config.prefix  is "string"
+      @delegateFilters()
+
+    _result = (object, property) ->
+      if object
+        value = object[property]
+        (if typeof value is 'function' then object[property]() else value)
+    # Cached regex to split keys for `delegate`.
+    _delegateFilterSplitter = /^(\S+)\s*(.*)$/
+    _allowedEvents = ["open", "close", "create", "read", "update", "delete", "subscribe", "unsubscribe"]
+    delegateFilters: (filters)->
+      #FROM backbone delegateEvents
+      return this unless filters or (filters = _result(this, "filters"))
+      for key, method of filters
+        # var method = events[key];
+        # if (!_.isFunction(method)) method = this[events[key]];
+        # if (!method) continue;
+        # continue unless method and typeof @[method] is "function"
+
+        {1: eventName, 2: label} = key.match(_delegateFilterSplitter)
+        console.log eventName, label, method
+
+  class Users extends Module
+    filters:
+      "create": "appendUserPermissions"
+      "read": "checkUserPermission"
+      "update": "checkUserPermission"
+      "delete": "checkUserPermission"
+
+      "create session": "sessionCRUD"
+      "read session": "sessionCRUD"
+      "update session": "sessionCRUD"
+      "delete session": "sessionCRUD"
+
+      "create user": "usersCRUD"
+      "read user": "usersCRUD"
+      "update user": "usersCRUD"
+      "delete user": "usersCRUD"
+    appendUserPermissions: ->
+    constructor: (config)->
+      super
+  new Users;
+  #=====================================================================================
+
+
+
   #socket (engine.io) connection handler
   server.on 'connection', (socket) ->
-
     #send message to just connected user
     # socket.send('hi')
-
     #send message to all users
     # server.clients[key].send JSON.stringify({"message":"new user connected"}) for key, value of server.clients
 
     socket.on 'message', (message) ->
-      try
-        request = JSON.parse message
-      catch error
-        res =
-          message: "error"
-          data: "SyntaxError: can not parse JSON `#{message}`"
-
       promise = new Promise (resolve, reject)->
+        try
+          request = JSON.parse message
+        catch error
+          res =
+            message: "error"
+            data: "SyntaxError: can not parse JSON `#{message}`"
+          reject(res)
         if not request.label
           #TODO add id if is set
           reject (message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, label must be set"})
@@ -126,8 +180,40 @@ exports.startServer = (port, path, callback) ->
             when "fetch"
               if request.kind? # in ["last", "since", "timespan", "all"]
                 switch request.kind
-                  #waiting for https://github.com/louischatriot/nedb/pull/109
-                  when "last" then reject (message: "error", data: {code: "501", status: "Not Implemented", value: "Kind #{request.kind} is under construction"})
+                  #for kind "last", you can send a `count` and `page` field
+                  when "last"
+                    if not request.count
+                      return reject(message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, for kind \"last\" must be set attribute count"})
+                    if not parseInt request.count, 10
+                      return reject(message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, attribute count must be integer"})
+                    request.count = parseInt request.count, 10
+                    if 0 > request.count
+                      return reject(message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, attribute count must greater than 0"})
+                    request.page ?= 1
+                    query =
+                      label: request.label
+                    db.find(query).sort({ timespan: -1 }).skip((request.page - 1) * request.count).limit(request.count).exec (error, docs)->
+                      if error?
+                        #TODO add id if is set
+                        reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot get document by #{query}"})
+                      else if not docs
+                        res =
+                          message: "error"
+                          data:
+                            code: "404"
+                            status: "Not Found"
+                            value: "The server has not found anything matching the Request"
+                        res.id = request.id if request.id
+                        reject res
+                      else
+                        res =
+                          message: "fetched"
+                          label: request.label
+                          #TODO add total count property
+                          # count: 0
+                          data: docs
+                        res.id = request.id if request.id
+                        resolve(res)
                   when "since"
                     query =
                       label: request.label
@@ -137,6 +223,15 @@ exports.startServer = (port, path, callback) ->
                       if error?
                         #TODO add id if is set
                         reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot get document by #{query}"})
+                      else if not docs
+                        res =
+                          message: "error"
+                          data:
+                            code: "404"
+                            status: "Not Found"
+                            value: "The server has not found anything matching the Request"
+                        res.id = request.id if request.id
+                        reject res
                       else
                         res =
                           message: "fetched"
@@ -155,6 +250,15 @@ exports.startServer = (port, path, callback) ->
                       if error?
                         #TODO add id if is set
                         reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot get document by #{query}"})
+                      else if not docs
+                        res =
+                          message: "error"
+                          data:
+                            code: "404"
+                            status: "Not Found"
+                            value: "The server has not found anything matching the Request"
+                        res.id = request.id if request.id
+                        reject res
                       else
                         res =
                           message: "fetched"
