@@ -8,49 +8,40 @@ class FilterQueues
       @enterPoints["#{event}:#{label}"] ?= []
       # if already exist some filters in non labeled registry an it is first record
       if not @enterPoints["#{event}:#{label}"].length and @enterPoints[event]?.length
-        clone = []
-        for item, index in @enterPoints[event]
-          newItem =
-            name: item.name
-            callback: item.callback
-            context: item.context
-            next: if index isnt (clone.length - 1) then clone[index + 1] else null
-          clone.push newItem
+        clone =  @enterPoints[event].slice 0
         @enterPoints["#{event}:#{label}"] = clone
-      if (length = @enterPoints["#{event}:#{label}"].push name: "#{context.constructor.name}:#{event}:#{label}", callback: callback, context: context, next: null) > 1
-        @enterPoints["#{event}:#{label}"][length - 2].next = @enterPoints["#{event}:#{label}"][length - 1]
+      @enterPoints["#{event}:#{label}"].push name: "#{context.constructor.name}:#{event}:#{label}", callback: callback, context: context
     else
       # push to execution array new event if it is non-labeled
       @enterPoints[event] ?= []
+      newMember =
+        name: "#{context.constructor.name}:#{event}:#{label}"
+        callback: callback
+        context: context
       for item in Object.keys(@enterPoints) when item.indexOf(event) is 0
-        if (length = @enterPoints[item].push name: "#{context.constructor.name}:#{event}:#{label}", callback: callback, context: context, next: null) > 1
-          @enterPoints[item][length - 2].next = @enterPoints[item][length - 1]
-
+        @enterPoints[item].push newMember
     return yes
 
   remove: (event, label, callback, context)->
     throw Error "FilterQueues.remove not implemented"
-  _execNext= (queueMember, request, resolve, last)=>
-    queue = queueMember.next
-    console.log "#{queueMember.name} -> #{queue.name}"
-    goToNext =
-      if queue.next is null then last
-      else =>
-        _execNext(queue, request, resolve, last)
+  _execNext = (queue, index, request, resolve, last)=>
+    index++
+    return do last if not item = queue[index]
+    goToNext = ->
+        _execNext(queue, index, request, resolve, last)
         return
-    queue.callback.apply queue.contex, [request, resolve, goToNext]
+
+    item.callback.apply item.contex, [request, resolve, goToNext]
     # queues.callback.apply queues.contex, [request, resolve, @_execNext]
   exec: (event, label, request, resolve, reject, next)->
     key = if label then "#{event}:#{label}" else event
-    queue = @enterPoints[key]?[0]
-    return do next if not queue
+    queue = @enterPoints[key] or @enterPoints[event]
+    item = queue?[0]
+    return do next if not item
       #TODO uncomment error after CRUD move to module
       # throw Error "no module found for request #{event}:#{label}"
-    console.log @enterPoints[key].length
-    console.log "============#{queue.name} -> #{queue?.next.name}=============="
-    queue.callback.apply queue.contex, [request, resolve, => _execNext(queue, request, resolve, next)]
+    item.callback.apply item.contex, [request, resolve, => _execNext(queue, 0, request, resolve, next)]
 
-    # queues.callback.apply queues.contex, [request, resolve, @_execNext] #TODO add more info, like user(socket), htmlServer..
 
 module.exports = class MessageFactory
   constructor: (config)->
@@ -89,8 +80,7 @@ module.exports = class MessageFactory
       module = new moduleName(options)
     #TODO add callback for wait until module is inited .. (database init, API check, login into service...)
     @addFilters module
-    # console.log @filterQueues.enterPoints
-    # console.log "-------------------------"
+
 
   execFilters: (request, next, resolve, reject)->
     #TODO add timeout - based on module

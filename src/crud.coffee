@@ -2,15 +2,15 @@ Module = module.parent.exports.Module
 
 module.exports = class CRUD extends Module
   filters:
-    "fetch page": "fetchPage"
+    "fetch employees": "fetchPage"
     "fetch": "fetch"
-    "create": "create"
-    "update": "update"
-    "delete": "delete"
+    # "create": "create"
+    # "update": "update"
+    # "delete": "delete"
   # constructor: (config)->
   #   super
-  create: (request, next, resolve, reject)->
-    next()
+  # create: (request, next, resolve, reject)->
+    # next()
     #TODO add "_" before indexes (label, timespan)
     # documents = request.data
     # if util.isArray documents
@@ -30,7 +30,7 @@ module.exports = class CRUD extends Module
     #       data: docs
     #     res.id = request.id if request.id
     #     resolve res
-  fetch: (req, res, next)-> console.log(req); console.log("crud:fetch"); next()
-  fetchPage: (req, res, next)-> console.log(req); console.log("crud:fetch:page"); next()
+  fetch: (req, res, next)-> console.log("crud:fetch"); next()
+  fetchPage: (req, res, next)-> console.log("crud:fetch:employees"); next()
   update: (req, res, next)-> next()
   delete: (req, res, next)-> next()

@@ -98,7 +98,7 @@ module.exports.startServer = (port, path, callback) ->
           socket.send JSON.stringify res
         ,
         (err)-> #reject
-          console.trace err
+          console.log err.stack
           res =
             message: "error"
             stack: (err.stack or "").split("\n").slice(1).map((v) ->"" + v + "").join("")
