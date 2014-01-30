@@ -3,6 +3,7 @@ module.exports = class SystemLock extends Module
   filters:
     "fetch": "goNext" # remove me after test
     "fetch employees": "goNext2" # remove me after test
+    create: (a,b,next)-> console.log "SystemLock:create"; next()
     # "create": "isUnLocked"
     # "update": "isUnLocked"
     # "delete": "isUnLocked"

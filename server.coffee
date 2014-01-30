@@ -90,15 +90,21 @@ module.exports.startServer = (port, path, callback) ->
     #send message to all users
     # server.clients[key].send JSON.stringify({"message":"new user connected"}) for key, value of server.clients
 
+    # process.on('uncaughtException', function(err) {
+    #   console.log(err.stack);
+    #   throw err;
+    # });
     socket.on 'message', (message) ->
       # TODO make messageFacrory to return promise
+
+
       promise = messageFactory.parseRequest(message)
       promise.then \
         (res)-> #resolve
           socket.send JSON.stringify res
         ,
         (err)-> #reject
-          console.log err.stack
+          console.log err.stack || err
           res =
             message: "error"
             stack: (err.stack or "").split("\n").slice(1).map((v) ->"" + v + "").join("")
