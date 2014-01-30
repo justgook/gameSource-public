@@ -11,22 +11,15 @@ util = require "util"
 #       new winston.transports.Console colorize:true, timestamp:true, level:"debug"
 #     ]
 
+module.exports.Module = require "./src/lib/module"
 
-exports.startServer = (port, path, callback) ->
+module.exports.startServer = (port, path, callback) ->
   #   #http://www.senchalabs.org/connect/
   app = connect()
     # .use(connect.logger('dev'))
     .use(connect.static(path))
     .use (req, res, next) ->
-      # console.log req
-      #req.url: '/page/Engines',
-      #req.method: 'GET',
-      #req.headers :{HTTP_X_REQUESTED_WITH:..}
-      # send
-      # console.log url
-      # next()
       send(req, path+"/index.html").pipe(res)
-      # res.end 'hello world\n'
     .use (req, res, next)->
       err = new Error('Not Found')
       err.number = 7
@@ -57,9 +50,9 @@ exports.startServer = (port, path, callback) ->
       label: "page"
       timespan: chance.hammertime() / 1000
       id: id
-      title: chance.sentence(words: 5)
-      author: chance.name()
-      content: chance.paragraph()
+      title: chance.sentence( words: 5 )
+      author: do chance.name
+      content: do chance.paragraph
     items.push item
 
   db.insert items, (error, docs)->
@@ -79,289 +72,39 @@ exports.startServer = (port, path, callback) ->
   server = engine.attach http
 
 
+  MessageFactory = require "./src/lib/messageFactory"
+  #TODO make database interface,
+  #pass require to have possibility require for same point
+  messageFactory = new MessageFactory database:db, require: require
 
+  #TODO move to config
+  messageFactory.use "./src/system-lock"
+  messageFactory.use "./src/crud"
   #=====================================================================================
-  #module test
-  #move me outside
-  class Module
-    filters:[]
-    prefix: ""
-    constructor: (config = {})->
-      console.info "registering module \"#{@constructor.name}\""
-      @prefix = config.prefix if config.prefix? and typeof config.prefix  is "string"
-      @delegateFilters()
-
-    _result = (object, property) ->
-      if object
-        value = object[property]
-        (if typeof value is 'function' then object[property]() else value)
-    # Cached regex to split keys for `delegate`.
-    _delegateFilterSplitter = /^(\S+)\s*(.*)$/
-    _allowedEvents = ["open", "close", "create", "read", "update", "delete", "subscribe", "unsubscribe"]
-    delegateFilters: (filters)->
-      #FROM backbone delegateEvents
-      return this unless filters or (filters = _result(this, "filters"))
-      for key, method of filters
-        # var method = events[key];
-        # if (!_.isFunction(method)) method = this[events[key]];
-        # if (!method) continue;
-        # continue unless method and typeof @[method] is "function"
-
-        {1: eventName, 2: label} = key.match(_delegateFilterSplitter)
-        console.log eventName, label, method
-
-  class Users extends Module
-    filters:
-      "create": "appendUserPermissions"
-      "read": "checkUserPermission"
-      "update": "checkUserPermission"
-      "delete": "checkUserPermission"
-
-      "create session": "sessionCRUD"
-      "read session": "sessionCRUD"
-      "update session": "sessionCRUD"
-      "delete session": "sessionCRUD"
-
-      "create user": "usersCRUD"
-      "read user": "usersCRUD"
-      "update user": "usersCRUD"
-      "delete user": "usersCRUD"
-    appendUserPermissions: ->
-    constructor: (config)->
-      super
-  new Users;
-  #=====================================================================================
-
-
 
   #socket (engine.io) connection handler
   server.on 'connection', (socket) ->
     #send message to just connected user
+
     # socket.send('hi')
     #send message to all users
     # server.clients[key].send JSON.stringify({"message":"new user connected"}) for key, value of server.clients
 
     socket.on 'message', (message) ->
-      promise = new Promise (resolve, reject)->
-        try
-          request = JSON.parse message
-        catch error
-          res =
-            message: "error"
-            data: "SyntaxError: can not parse JSON `#{message}`"
-          reject(res)
-        if not request.label
-          #TODO add id if is set
-          reject (message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, label must be set"})
-        else
-          switch request.message
-            when "create"
-              #TODO add permission filter
-              #TODO add "_" before indexes (label, timespan)
-              documents = request.data
-              if util.isArray documents
-                for item in documents
-                  item.label = request.label
-                  item.timespan = Date.now() / 1000
-              else
-                documents.label = request.label
-              db.insert documents, (error, docs)->
-                if error?
-                  #TODO add id if is set
-                  reject message: "error", data: code: "500", status: "Database error #{error}", value: "Error on inserting data - #{document}"
-                else
-                  res =
-                    message: "created"
-                    label: request.label
-                    data: docs
-                  res.id = request.id if request.id
-                  resolve(res)
-
-            when "fetch"
-              if request.kind? # in ["last", "since", "timespan", "all"]
-                switch request.kind
-                  #for kind "last", you can send a `count` and `page` field
-                  when "last"
-                    if not request.count
-                      return reject(message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, for kind \"last\" must be set attribute count"})
-                    if not parseInt request.count, 10
-                      return reject(message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, attribute count must be integer"})
-                    request.count = parseInt request.count, 10
-                    if 0 > request.count
-                      return reject(message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, attribute count must greater than 0"})
-                    request.page ?= 1
-                    query =
-                      label: request.label
-                    db.find(query).sort({ timespan: -1 }).skip((request.page - 1) * request.count).limit(request.count).exec (error, docs)->
-                      if error?
-                        #TODO add id if is set
-                        reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot get document by #{query}"})
-                      else if not docs
-                        res =
-                          message: "error"
-                          data:
-                            code: "404"
-                            status: "Not Found"
-                            value: "The server has not found anything matching the Request"
-                        res.id = request.id if request.id
-                        reject res
-                      else
-                        res =
-                          message: "fetched"
-                          label: request.label
-                          #TODO add total count property
-                          # count: 0
-                          data: docs
-                        res.id = request.id if request.id
-                        resolve(res)
-                  when "since"
-                    query =
-                      label: request.label
-                      #TODO Add error if request.since is not set
-                      timespan: $gte: Date.now() / 1000 - request.since
-                    db.find query, (error, docs)->
-                      if error?
-                        #TODO add id if is set
-                        reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot get document by #{query}"})
-                      else if not docs
-                        res =
-                          message: "error"
-                          data:
-                            code: "404"
-                            status: "Not Found"
-                            value: "The server has not found anything matching the Request"
-                        res.id = request.id if request.id
-                        reject res
-                      else
-                        res =
-                          message: "fetched"
-                          label: request.label
-                          #TODO add total count property
-                          # count: 0
-                          data: docs
-                        res.id = request.id if request.id
-                        resolve(res)
-                  when "timespan" then reject (message: "error", data: {code: "501", status: "Not Implemented", value: "Kind '#{request.kind}' is under construction"})
-                    #TODO add documentation and implementation
-                  when "all"
-                    query = request.data
-                    query.label = request.label
-                    db.find query, (error, docs)->
-                      if error?
-                        #TODO add id if is set
-                        reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot get document by #{query}"})
-                      else if not docs
-                        res =
-                          message: "error"
-                          data:
-                            code: "404"
-                            status: "Not Found"
-                            value: "The server has not found anything matching the Request"
-                        res.id = request.id if request.id
-                        reject res
-                      else
-                        res =
-                          message: "fetched"
-                          label: request.label
-                          #TODO add total count property
-                          # count: 0
-                          data: docs
-                        res.id = request.id if request.id
-                        resolve(res)
-                  # then reject (message: "error", data: {code: "501", status: "Not Implemented", value: "Kind '#{request.kind}' is under construction"})
-                  #TODO add id if is set
-                  else reject (message: "error", data: {code: "405", status: "Method Not Allowed", value: "Unknown kind - '#{request.kind}'"})
-
-              #TODO add total count property
-              #TODO add permission filter
-              else if request.data? #request.kind is not set
-                if util.isArray request.data
-                  #TODO add implementation of search of array
-                  reject message: "error", data: code: "501", status: "Not Implemented", value: "fetch of multi records by one request not implement yet"
-                else
-                  request.data.label = request.label
-                  db.findOne request.data, (error, doc)->
-                    if error?
-                      #TODO add id if is set
-                      reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot get document for #{request.data}"})
-                    else if not doc
-                      res =
-                        message: "error"
-                        data:
-                          code: "404"
-                          status: "Not Found"
-                          value: "The server has not found anything matching the Request"
-                      res.id = request.id if request.id
-                      reject res
-                    else
-                      delete doc._id
-                      res =
-                        message: "fetched"
-                        label: request.label
-                        data: doc
-                      res.id = request.id if request.id
-                      resolve(res)
-              else
-                #TODO add id if is set
-                reject (message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, kind must be set"})
-
-            when "update" then resolve
-              #TODO add permission filter
-                message: "updated"
-            when "delete"
-              # #TODO add permission filter
-              if request.data?
-                if util.isArray request.data
-                  promiseArray = []
-                  for item in request.data
-                    query = item
-                    query.label = request.label
-                    promiseArray.push new Promise (resolve, reject)->
-                      db.remove query, {multi: true}, (error, numRemoved) ->
-                        if error?
-                          reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot delete document by #{query}"})
-                        else
-                          res =
-                            message: "deleted"
-                            label: request.label
-                            count: numRemoved
-                          res.id = request.id if request.id?
-                          resolve(res)
-                  #TODO cancat all messeges in one!
-                  Promise.all(promiseArray).then resolve, reject
-                else
-                  query = request.data
-                  query.label = request.label
-                  db.remove query, {multi: true}, (error, numRemoved) ->
-                    if error?
-                      reject (message: "error", data: {code: "500", status: "Database error #{error}", value: "Cannot delete document by #{query}"})
-                    else
-                      res =
-                        message: "deleted"
-                        label: request.label
-                        count: numRemoved
-                      res.id = request.id if request.id?
-                      resolve(res)
-              else
-                #TODO add id if is set
-                reject (message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, data attribute must be set"})
-
-            when "subscribe" then resolve
-              message: "subscribed"
-            when "unsubscribe" then resolve
-              message: "unsubscribed"
-            else reject
-              message: "error"
-              data:
-                code: "405"
-                status: "Method Not Allowed"
-                value: """Method "#{request.message}" Not Allowed, use one of create, update, delete, fetch, subscribe or unsubscribe"""
-
+      # TODO make messageFacrory to return promise
+      promise = messageFactory.parseRequest(message)
       promise.then \
         (res)-> #resolve
           socket.send JSON.stringify res
         ,
-        (res)-> #reject
+        (err)-> #reject
+          console.trace err
+          res =
+            message: "error"
+            stack: (err.stack or "").split("\n").slice(1).map((v) ->"" + v + "").join("")
+            value: err.message
+          if err.status then res.statusCode = err.status
+          if not res.statusCode or res.statusCode < 400 then res.statusCode = 500
           socket.send JSON.stringify res
     # socket.on 'close', ->
       return

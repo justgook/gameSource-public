@@ -1,3 +1,11 @@
+#READ this !!!
+
+http://docpad.org/docs/intro
+
+
+#find some good solution to abstract DB
+https://github.com/bevry/query-engine
+
 #run test
 
 As a some kind of workaround (though not very handy), you can do as follows:

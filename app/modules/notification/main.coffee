@@ -10,12 +10,20 @@ class NotificationCollection extends Backbone.Collection
 class NotificationView extends Backbone.View
   template: (data)-> """<li class="#{data.type}"><h4>#{data.title}</h4>#{data.content}</li>"""
   initialize:->
-    @listenTo Backbone, "message:error", @parseError
+    @listenTo Backbone, "message:error", @addError
     @listenTo @collection, "add", @renderAdd
   renderAdd: (model, collection, options)->
     @$el.append @template model.toJSON()
-  parseError: ({code, status, value})->
-    @collection.add content: value, title: "#{status} (#{code})"
+  addError: (err)->
+    console.log err
+    data =
+      type: "error"
+      title: "Error"
+      content: "unknown error"
+    if err instanceof Error
+      data.content = err.message
+    @collection.add data
+    return
 module.exports = (configs)->
   configs.collection ?= new NotificationCollection
   new NotificationView configs
