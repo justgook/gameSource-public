@@ -1,5 +1,7 @@
 Module = module.parent.exports.Module
 module.exports = class SystemLock extends Module
+  before:
+    fetch: (request, next)-> console.log "SystemLock:before:fetch"; next()
   filters:
     "fetch": "goNext" # remove me after test
     "fetch employees": "goNext2" # remove me after test

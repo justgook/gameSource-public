@@ -9,8 +9,8 @@ module.exports = class CRUD extends Module
     "create": "create"
     "update": "update"
     "delete": "delete"
-    subscribe: -> next(message: "subscribed")
-    unsubscribe:-> next(message: "unsubscribed")
+    "subscribe": -> next(message: "subscribed")
+    "unsubscribe":-> next(message: "unsubscribed")
   # constructor: (config)->
   #   super
   create: (request, response)->
