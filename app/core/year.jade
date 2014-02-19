@@ -1,0 +1,14 @@
+each year in data
+  h1= year.Y
+  each month in year.months
+    table
+      caption: a(href="")= month.m
+      tr
+        th
+        each weekDay in month.weeks[1].days
+          th= weekDay.short
+      each week in month.weeks
+        tr
+          th: a(href="")=week.W
+          each i in [0,1,2,3,4,5,6]
+            td: a(href="")=week.days[i]? week.days[i].d : ""

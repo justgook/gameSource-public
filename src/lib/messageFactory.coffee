@@ -9,7 +9,7 @@ class FilterQueues
       @enterPoints["#{event}:#{label}"] ?= []
       # if already exist some filters in non labeled registry an it is first record
       if not @enterPoints["#{event}:#{label}"].length and @enterPoints[event]?.length
-        clone =  @enterPoints[event].slice 0
+        clone = @enterPoints[event].slice 0
         @enterPoints["#{event}:#{label}"] = clone
       @enterPoints["#{event}:#{label}"].push name: "#{context.constructor.name}:#{event}:#{label}", callback: callback, context: context
     else
@@ -32,7 +32,7 @@ class FilterQueues
     args.push ->
         _execNext(queue, index, args)
         return
-    item.callback.apply item.contex, args
+    item.callback.apply item.context, args
     return yes
 
   exec: (event, label, args)->
@@ -46,13 +46,14 @@ class FilterQueues
     #   err.status = 405
     #   throw err
     args.push -> _execNext(queue, 0, args)
-    item.callback.apply item.contex, args
+    console.log item
+    item.callback.apply item.context, args
     return yes
 
 
 module.exports = class MessageFactory
   constructor: (config)->
-    @db = config.database
+    # @db = config.database
     @require = config.require
 
     @filterQueues = new FilterQueues
@@ -67,17 +68,19 @@ module.exports = class MessageFactory
       (if typeof value is 'function' then object[property]() else value)
 
   parseFilters: (module, propname, pushTo)->
-    filters = module[propname or "filters"]
+    filters = module[propname]
     #FROM backbone delegateEvents
-    return this unless filters or (filters = _result(this, "filters"))
+    return no unless filters or (filters = _result(this, "filters"))
     for key, method of filters
       if typeof method is "string" then method = module[method]
       # if not method then continue
       #TODO add error for development env!
-      continue unless method and typeof method is "function"
+      unless method and typeof method is "function"
+        throw Error "#{module.constructor.name}::#{propname}[\"#{key}\"] is not executable"
       {1: eventName, 2: label} = key.match(_delegateFilterSplitter)
-      continue if eventName not in _allowedEvents
-      @[pushTo or "filterQueues"].add eventName, label, method, module
+      if eventName not in _allowedEvents
+        throw Error "Filter \"#{eventName}\", registered in module \"#{module.constructor.name}\" is not allowed"
+      @[pushTo].add eventName, label, method, module
     return yes
 
   #register module for later use
@@ -88,7 +91,7 @@ module.exports = class MessageFactory
     else
       module = new moduleName(options)
     #TODO add callback for wait until module is inited .. (database init, API check, login into service...)
-    @parseFilters module
+    @parseFilters module, "filters", "filterQueues"
     @parseFilters module, "before", "beforeQueues"
     @parseFilters module, "after", "afterQueues"
 
@@ -97,24 +100,33 @@ module.exports = class MessageFactory
     @beforeQueues.exec request.body.message, request.body.label, [request]
     @filterQueues.exec request.body.message, request.body.label, [request, response]
     @afterQueues.exec request.body.message, request.body.label, [response]
-  parseRequest: (message)-> #(message, socket, resolve, reject)->
+  parseRequest: (message, options)-> #(message, socket, resolve, reject)->
     promise = new Promise (resolve, reject)=>
       try
         request =
           body: JSON.parse message
-          database: @db
+          # client: options.userId
       catch error
+        console.log error
         res =
           message: "error"
           data: "SyntaxError: can not parse JSON `#{message}`"
         reject(res)
-      response =
-        end: resolve
-      if not request.body.label
+      if not request.body.label and request.body.message not in ["close", "open"]
         #TODO add id if is set
         reject (message: "error", data:{code: "406", status: "Not Acceptable", value: "Not Acceptable, label must be set"})
       else
+        request.database = options.database if options.database?
+        request.client = options.socket.id if options.socket?.id?
+
+        response =
+          end: resolve
+          send: options.socket.send if options.socket?.send?
+          broadcast: if options.server.clients? then (key, message)-> server.clients[key].send message; return
         #TODO wrap with error handler
         #TODO add id if is set
         @execFilters request, response
+        #TODO WARP ALL MESSAGES around.. to create nicer API, push to modules only data, and get back only data
+        #TODO message and label move to request special attributes, not inside body
+        #TODO rename `data` to `value` and allow to be it any type (String, array, object)
     return promise

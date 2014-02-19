@@ -18,59 +18,60 @@ html(lang="en")
     script(src="/templates.js", defer)
     script(src="/app.js", defer, onload="require('initialize');")
   body
-    #wrapper.startpage
-      header
-        form#search(method="get", action="/search")
-          h1.logo Game Resource
-          label: input(name="q", type="text", size="40",  autocomplete="off", placeholder="Search...")
-        menu#main-menu
-          li
-            a(href="/page/Engines") Engines
-            menu
-              li
-                a.icon-panda(href="/page/Engines/1") Engine #1
-              li
-                a(href="/page/Engines/2") Engine #2
-          li
-            a(href="/page/World") World
-            menu
-              li: a(href="/page/World/Terrains") Terrains
-              li: a(href="/page/World/Static-items") Static items
-          li
-            a(href="/page/NPC") NPC
-            menu
-              li
-                a(href="/page/NPC/biped") biped
-          li
-            a(href="/page/Characters") Characters
-            menu
-              li
-                a(href="/page/Characters/Fantasy") Fantasy
-              li
-                a(href="/page/Characters/Military") Military
-              li
-                a(href="/page/Characters/Monsters") Monsters
-              li
-                a(href="/page/Characters/Toon") Toon
-              li
-                a(href="/page/Characters/Armor") Armor
-              li
-                a(href="/page/Characters/Weapons") Weapons
-          li
-            a(href="/page/Community") Community
-            menu
-              li
-                a(href="/chat") Chat
-              li
-                a.icon-forum(href="/forum") Forum
-          li
-            a(href="/page/wiki") Wiki
-            menu
-              li
-                a(href="/page/Tutorials") Tutorials
-              li
-                a(href="/page/Tools") Tools
-      main#content(role="main")
-    footer(role="contentinfo")
-    #preferences
-    ul#notification
+    header
+      h1 some logo or name
+      form
+        input(type="search", name="query", placeholder="Search ...")
+        button.icon-search(type="submit")
+        button.icon-cog(type="button")
+        button.icon-bubble(type="button")
+        button.icon-exit(type="button")
+    section#helper.front
+      .front
+      .back
+    aside
+      menu
+        li: a(href="/page/Engines")
+          i.icon-gauge
+          |Dashboard
+        li: a(href="/page/Engines/1")
+          i.icon-paperclip
+          |UI Elements
+        li: a(href="/page/wiki")
+          i.icon-book
+          |Wiki
+        li: a(href="/page/Engines/2")
+          i.icon-book
+          |Form Stuff
+        li: a(href="/page/World", data-notifications="4")
+          i.icon-bubbles
+          |Messages
+        li: a(href="/page/World/Static-items")
+          i
+          |Statistics
+        li: a(href="/page/NPC")
+          i
+          |Tabeles
+        li: a(href="/page/NPC/biped")
+          i
+          |Other Pages
+    main(role="main").front
+      .front
+        |dasdasd
+      .back
+        //- header
+        //-   h1 Dashboard
+        //- article(data-module="flipper")
+        //-   .flip-container
+        //-     .front
+        //-       | front content
+        //-     .back
+        //-       | back content
+        //- article(data-module="charts")
+        //-   include examples/_chart
+        //- article(data-module="tables")
+        //-   include examples/_table
+        //- article(data-module="comments")
+        //-   include examples/_comments
+
+

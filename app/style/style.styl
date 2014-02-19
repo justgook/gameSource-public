@@ -1,0 +1,411 @@
+/*Config*/
+$backgroundColor = #7a706f
+$brandColors = #8fd7d4 #e96f57 #FaA300 #FFfefe
+//TODO must be #e96f57 now is #FaA300
+/*Config parser*/
+attentionColor = #0FF
+
+delme = ""
+for color in $brandColors
+  if red(color) > green(color) and red(color) > blue(color) and red(color) - green(color) + red(color) - blue(color) > red(attentionColor) - green(attentionColor) + red(attentionColor) - blue(attentionColor)
+    attentionColor = color
+  if red(color) > green(color)
+    push(delme, red(color) - green(color))
+if attentionColor is #0FF
+  attentionColor = #F00
+
+frontColor = #fff
+brandColor = #8fd7d4
+
+@import 'nib'
+@font-face
+  //TODO fix font position
+  font-family: 'icomoon';
+  src:url('fonts/icomoon/fonts/icomoon.eot?9h5x6i');
+  src:url('fonts/icomoon/fonts/icomoon.eot?#iefix9h5x6i') format('embedded-opentype'),
+    url('fonts/icomoon/fonts/icomoon.woff?9h5x6i') format('woff'),
+    url('fonts/icomoon/fonts/icomoon.ttf?9h5x6i') format('truetype'),
+    url('fonts/icomoon/fonts/icomoon.svg?9h5x6i#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+
+[class^="icon-"], [class*=" icon-"] {
+  font-family: 'icomoon';
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-search:before {
+  content: "\e600";
+}
+.icon-cross:before {
+  content: "\e601";
+}
+.icon-arrow-right:before {
+  content: "\e602";
+}
+.icon-arrow-left:before {
+  content: "\e603";
+}
+.icon-gauge:before {
+  content: "\e604";
+}
+.icon-paperclip:before {
+  content: "\e605";
+}
+.icon-plus:before {
+  content: "\e606";
+}
+.icon-cog:before {
+  content: "\e607";
+}
+.icon-book:before {
+  content: "\e60a";
+}
+.icon-bubble:before {
+  content: "\e608";
+}
+.icon-bubbles:before {
+  content: "\e609";
+}
+.icon-exit:before {
+  content: "\e60b";
+}
+.icon-file:before {
+  content: "\e60c";
+}
+
+
+
+stripe(even = #fff, odd = #eee)
+  tr
+    background-color odd
+    &.even
+    &:nth-child(even)
+      background-color even
+
+html
+  font-size: 16px
+body
+  color:#242424
+  font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif
+  font-size: 62.5% /* 1em = 10px */
+  line-height:1.125em; /* 16×1.125=18 */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+*
+  outline: 0
+table
+  border-spacing: 0
+body
+  background: #706866 //TODO add function to calculate color value
+  section
+    z-index: 1
+    position: relative
+    box-sizing: border-box
+    background: $backgroundColor
+    height: 85px
+
+    //flipper
+    perspective 1000
+    transform-style preserve-3d
+    & .front, & .back
+      overflow:hidden
+      padding:15px
+      box-sizing: border-box
+      background: brandColor
+      height: 85px
+      backface-visibility hidden
+      transition: 0.6s
+      position: absolute
+      top: 0
+      left: 0
+    & .front
+      z-index 2
+      transform rotateX(0deg)
+    & .back
+      transform rotateX(-180deg)
+    &.front>.front
+      transform rotateX(180deg)
+    &.front>.back
+      transform rotateX(0deg)
+  aside
+    position: absolute
+    top: 0
+    left: 0
+    bottom: 0
+    margin-top: 145px
+    background: #706866 // TODO change to function
+    box-shadow: -4px 0 0 #5f5a57 inset // TODO change to function
+    menu
+      padding: 0
+      margin: 0
+      li
+        list-style: none
+        a
+          z-index:1
+
+          box-sizing:border-box
+          color: #feffff
+          background: #7a706f // TODO change to function
+          box-shadow: -4px 0 0 #69615f inset // TODO change to function
+          text-align:center
+          width: 85px
+          height: 85px
+          padding:0
+          margin: 1px 0 1px 0
+          display: block
+          text-decoration: none
+          position: relative
+          time-to-animate = 0.2s
+          transition: all time-to-animate
+          padding-top:2em
+          i
+            display:block
+            font-size:3em
+            padding-bottom:0.3em
+          &:first-child
+            margin-top:0
+          &:hover
+            background: #6a605f // TODO change to function
+            box-shadow: -4px 0 0 #5b5351 inset // TODO change to function
+          &:active, &.active
+            background: #8fd7d4 // TODO change to function
+            box-shadow: -4px 0 0 #7abcb8 inset // TODO change to function
+            color:#242424 // TODO change to function
+            &:after
+              opacity: 1
+              right: -14px
+              border-left-color: #8fd7d4 // TODO change to function
+            &:before
+              opacity: 1
+              right: -20px
+              border-left-color: #7abcb8 // TODO change to function
+          &:after
+            transition: all time-to-animate
+            opacity: 0
+            position: absolute
+            top:50%
+            margin-top: -12px
+            right: -10px
+            content: ""
+            border: 12px solid transparent
+            border-left-color: #7a706f // TODO change to function
+          &:before
+            transition: all time-to-animate
+            opacity: 0
+            position:absolute
+            top:50%
+            margin-top: -12px
+            right: 0px
+            content: ""
+            border: 12px solid transparent
+            border-left-color: #7a706f // TODO change to function
+  main
+    background: #f6f6f6 // TODO change to function or base color
+    min-height: 500px
+    margin-left: 85px
+    box-sizing: border-box
+    padding: 0 0 0 85px
+    position: relative
+    & .front, & .back
+      padding:15px 25px 15px 25px
+      backface-visibility hidden
+      transition: 0.6s
+      position: absolute
+      top: 0
+      left: 0
+      background: @background
+    & .front
+      opacity: 1
+      left: 0
+    & .back
+      opacity: 0
+      left: 30px
+    &.front>.front
+      opacity: 0
+      left: 30px
+    &.front>.back
+      opacity: 1
+      left: 0
+
+    &>div>header //TODO fix me
+      box-sizing: border-box
+      height:70px
+      background: #f0f0f0 // TODO change to function or based on UI theme (dark or light)
+      padding-top:15px
+      >h1
+        margin-top:15px
+        height: 40px
+        font-size:2em
+        line-height:40px
+        padding: 0 20px 0 20px
+        border-right:1px solid #dbdbdb
+        display: inline-block
+        margin: 0
+    & article[data-module]
+      box-sizing: border-box
+      border-top: 2px solid #efefef
+
+    & article[data-module="comments"]
+      background: #f6f6f6
+      padding-right:20px
+      &>header
+        padding: 8px 0 8px 8px
+        border-bottom: 2px solid #efefef
+        margin-bottom: 15px
+        &:after
+          content: " ";
+          display: block;
+          height: 0;
+          clear: both;
+          overflow: hidden;
+          visibility: hidden;
+        h3
+          float:left
+          font-size: 1.4em
+          margin: 15px 0 15px 25px
+        fieldset
+          vertical-align: middle
+          border: 0
+          float: right
+          padding: 0
+          margin: 0
+          button
+            margin-right:0
+          input[type="checkbox"]
+            vertical-align: middle
+            box-sizing: content-box
+            background: #ddd
+            appearance: none
+            -webkit-appearance: none
+            display: inline-block
+            border-radius: 8px
+            border:1px solid #ddd
+            width: 40px
+            height: 14px
+            box-shadow: 1px 1px #d5d5d5 inset
+            position:relative
+            transition: all 0.2s
+            &:after
+              transition: all 0.2s
+              left:0
+              border-radius: 8px
+              position: absolute
+              background: #fff
+              content:""
+              width: 14px
+              height: 14px
+              box-shadow: -1px 0px rgba(0,0,0,0.1) //change to real color, not alpha
+            &:checked
+              background: #b7d98d
+              box-shadow: 1px 1px #b0d087 inset
+            &:checked:after
+              left: 26px
+      &>div
+        border-bottom: 2px solid #efefef
+      & div
+        padding-bottom:20px
+        margin-bottom: 15px
+        &>div
+          margin-top: 15px
+          &>header
+            text-align:right
+            &>cite.author
+              color:#e96f57
+            &>img
+              float:right
+              margin: 0 0 0 15px
+          &>p
+            margin-right: 75px
+        &>header
+          padding-left: 20px
+          height:45px
+          box-sizing: border-box
+          &>cite.author
+            padding:0
+            padding-top:15px
+            margin:0
+            display:block
+            font-size:1.2em
+            font-weight: bold
+            color: #8fd7d4
+          &>time
+            display:block
+            font-size:0.8em
+            color:#b5b5b5
+          &>img
+            float:left
+            width: 60px
+            height: 60px
+            border-radius: 30px
+            margin-right: 15px
+        &>p
+          margin-left: 95px
+          padding:20px 16px 20px 16px
+          background:#fff
+          border-radius:4px
+          box-shadow:0 1px #ebebeb
+  &>header
+    z-index:1
+    position:relative
+    background: $backgroundColor
+    height: 60px
+    h1
+      float: left
+    form
+      float: right
+      height: 60px
+      line-height: 60px
+      padding: 0
+      margin: 0
+      input
+        font-size: 0.825em
+        box-sizing: border-box
+        padding: 0 10px 0 10px
+        border: 0
+        border-radius: 13px
+        border:1px solid #6b6361 //TODO change to function
+        height: 26px
+        display: inline
+button
+  font-size:1.8em
+  vertical-align: middle
+  box-sizing: border-box
+  padding: 0
+  border-radius: 4px
+  border: 1px solid #6f6462 //TODO change to function
+  background: #857a78 //TODO change to function
+  height: 26px
+  width: 26px
+  overflow: hidden
+  margin: 0 5px 0 5px
+  color:#fff //TODO change to function
+  &:active, &.active
+    background:#716766 //TODO change to function
+    border-color: #665c5b
+    box-shadow: 1px 1px #695f5e inset //TODO change to function
+  &:before
+    vertical-align: middle
+    line-height: 1.25
+    font-family: 'icomoon';
+    speak: none;
+    font-style: normal
+    font-weight: normal
+    font-variant: normal
+    text-transform: none
+    /* Better Font Rendering =========== */
+    -webkit-font-smoothing: antialiased
+    -moz-osx-font-smoothing: grayscale

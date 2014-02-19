@@ -14,6 +14,8 @@ class PageCollection extends Backbone.Collection
 
 class PageView extends Backbone.View
   template: require "./template"
+  titleTemplate: require "./title"
+  setApp: (@app)->
   initialize: ->
     @collection = new PageCollection
   showPage: (pageId)->
@@ -26,7 +28,8 @@ class PageView extends Backbone.View
     model.fetch(url: @collection.url, success: @render)
   render: (page)=>
     #TODO find better way, to be able set loading state add/or some animation to it..
-    @regions.content.el.innerHTML = @template page.toJSON()
+    @app.setMainEl @template page.toJSON()
+    @app.setHelperEl @titleTemplate page.toJSON()
 
 class PageRoute extends Backbone.SubRoute
   routes:
@@ -41,7 +44,7 @@ class PageRoute extends Backbone.SubRoute
 module.exports = (configs)->
   #add data for collection
   # configs.collection ?= new PageCollection
-  if not configs.regions?.content?
-    throw Error """Region "content" must be set for module Page"""
+  if not configs.app?
+    throw Error """app must provide setMainEl method"""
   route = new PageRoute configs.route_prefix or "page"
-  route.view.regions = configs.regions
+  route.view.setApp configs.app

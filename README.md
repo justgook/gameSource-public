@@ -1,4 +1,17 @@
-#READ this !!!
+#widgets
+List editor https://github.com/pornel/slip
+
+![](https://github-camo.global.ssl.fastly.net/a86057a0ba5c8af4da028c7e34e26faf375e54be/687474703a2f2f706f726e656c2e6e65742f736c69702f64656d6f2e676966)
+
+
+#WebRTC
+http://www.html5rocks.com/en/tutorials/webrtc/basics/#toc-rtcdatachannel
+create calebrative text editor..
+
+#build own NPM server
+http://strongloop.com/strongblog/deploy-a-private-npm-registry-without-couchdb-or-redis/
+
+###ideas for build system
 
 http://docpad.org/docs/intro
 

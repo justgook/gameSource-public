@@ -5,20 +5,19 @@
   "dependencies": {
     "lodash": "~2.1.0",
     "jquery": "~2.0.2",
-    "normalize-css": "~2.1.2",
-    "h5bp-helpers": "~0.1.0",
     "backbone": "~1.1.0",
     "backbone.subroute": "~0.4.0",
-    "backbone-forms": "~0.12.0",
+    "backbone-forms": "~0.14.0",
     "engine.io": "https://github.com/justgook/engine.io-client.git#master",
-    "backgrid": "~0.3.2"
+    "backgrid": "~0.3.2",
+    "chartjs": "*"
   },
   "overrides": {
     "engine.io": {
       "ignore": "component.json",
       "dependencies": {}
     },
-    "backgrid":{
+    "backgrid": {
       "dependencies": {
         "lodash": "*",
         "backbone": "*",

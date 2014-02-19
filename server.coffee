@@ -75,7 +75,7 @@ module.exports.startServer = (port, path, callback) ->
   MessageFactory = require "./src/lib/messageFactory"
   #TODO make database interface,
   #pass require to have possibility require for same point
-  messageFactory = new MessageFactory database:db, require: require
+  messageFactory = new MessageFactory require: require
 
   #TODO move to config
   messageFactory.use "./src/system-lock"
@@ -84,6 +84,12 @@ module.exports.startServer = (port, path, callback) ->
 
   #socket (engine.io) connection handler
   server.on 'connection', (socket) ->
+    #TODO create array of users to be sure that after refresh all users will be same, ore move that behavior to some module
+    #for example to `users`, that will catch all users, and update "response.client" with session-id and "response.send" with send message to correct connection
+    options =
+      database: db
+      socket: socket
+      server: server
     #send message to just connected user
 
     # socket.send('hi')
@@ -94,11 +100,27 @@ module.exports.startServer = (port, path, callback) ->
     #   console.log(err.stack);
     #   throw err;
     # });
+
+
+    #TODO combine all promises creation to some function
+    connectionPromise = messageFactory.parseRequest("""{"message": "open"}""", options)
+    connectionPromise.then \
+      (res)-> #resolve
+        socket.send JSON.stringify res
+      ,
+      (err)-> #reject
+        console.log err.stack || err
+        res =
+          message: "error"
+          stack: (err.stack or "").split("\n").slice(1).map((v) ->"" + v + "").join("")
+          value: err.message
+        if err.status then res.statusCode = err.status
+        if not res.statusCode or res.statusCode < 400 then res.statusCode = 500
+        socket.send JSON.stringify res
+
     socket.on 'message', (message) ->
-      # TODO make messageFacrory to return promise
 
-
-      promise = messageFactory.parseRequest(message)
+      promise = messageFactory.parseRequest(message, options)
       promise.then \
         (res)-> #resolve
           socket.send JSON.stringify res
@@ -112,7 +134,23 @@ module.exports.startServer = (port, path, callback) ->
           if err.status then res.statusCode = err.status
           if not res.statusCode or res.statusCode < 400 then res.statusCode = 500
           socket.send JSON.stringify res
-    # socket.on 'close', ->
+      return
+    #on close connection execute special event in all modules
+    socket.on 'close', ->
+      promise = messageFactory.parseRequest("""{"message": "close"}""", options)
+      promise.then \
+        (res)-> #resolve
+          socket.send JSON.stringify res
+        ,
+        (err)-> #reject
+          console.log err.stack || err
+          res =
+            message: "error"
+            stack: (err.stack or "").split("\n").slice(1).map((v) ->"" + v + "").join("")
+            value: err.message
+          if err.status then res.statusCode = err.status
+          if not res.statusCode or res.statusCode < 400 then res.statusCode = 500
+          socket.send JSON.stringify res
       return
   #call Callback to say brunch "server is started"
   callback()
